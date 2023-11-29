@@ -5,13 +5,17 @@ using System.Linq;
 
 class Program
 {
+    static List<string> predmeti = new List<string> {
+        "matematika", "hrvatski", "engleski", "tjelesni", "programiranje", "webdizajn", "bazapodataka"
+    };
+
     static void Main()
     {
         while (true)
         {
             Console.WriteLine("Odaberite opciju:");
             Console.WriteLine("1. Ispis svih ucenika");
-            Console.WriteLine("2. Unos novih ucenika");
+            Console.WriteLine("2. Unos novih ocjena");
             Console.WriteLine("3. Pretraga ucenika po ocjeni i predmetu");
             Console.WriteLine("4. Izlaz");
 
@@ -27,13 +31,10 @@ class Program
             }
             else if (opcija == 2)
             {
-                Console.WriteLine("Koliko novih ucenika zelite unijeti?");
-                int brojUcenika;
-                while (!int.TryParse(Console.ReadLine(), out brojUcenika) || brojUcenika < 1)
-                {
-                    Console.WriteLine("Molimo unesite broj veci od 0.");
-                }
-                UnosUcenika(brojUcenika);
+                Console.WriteLine("Unesite ime ucenika:");
+                string ime = Console.ReadLine();
+
+                UnosOcjena(ime);
             }
             else if (opcija == 3)
             {
@@ -55,19 +56,13 @@ class Program
         }
     }
 
-    static void UnosUcenika(int brojUcenika)
+    static void UnosOcjena(string ime)
     {
         using (StreamWriter sw = File.AppendText("ucenici.txt"))
         {
-            for (int i = 0; i < brojUcenika; i++)
+            foreach (string predmet in predmeti)
             {
-                Console.WriteLine($"Unesite ime ucenika {i + 1}:");
-                string ime = Console.ReadLine();
-
-                Console.WriteLine("Unesite naziv predmeta:");
-                string predmet = Console.ReadLine();
-
-                Console.WriteLine("Unesite ocjenu:");
+                Console.WriteLine($"Unesite ocjenu iz {predmet}:");
                 int ocjena;
                 while (!int.TryParse(Console.ReadLine(), out ocjena) || ocjena < 1 || ocjena > 5)
                 {
@@ -82,7 +77,13 @@ class Program
     static void PretragaUcenika()
     {
         Console.WriteLine("Unesite naziv predmeta za pretragu:");
-        string predmetPretraga = Console.ReadLine();
+        string predmetPretraga = Console.ReadLine().ToLower();
+
+        if (!predmeti.Contains(predmetPretraga))
+        {
+            Console.WriteLine("Uneseni predmet ne postoji.");
+            return;
+        }
 
         Console.WriteLine("Unesite ocjenu za pretragu:");
         int ocjenaPretraga;
