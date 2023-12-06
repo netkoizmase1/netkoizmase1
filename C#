@@ -5,6 +5,7 @@ using System.Linq;
 
 class Program
 {
+    // Lista predmeta koja se koristi za unos ocjena
     static List<string> predmeti = new List<string> {
         "matematika", "hrvatski", "engleski", "tjelesni", "programiranje", "webdizajn", "bazapodataka"
     };
@@ -13,6 +14,7 @@ class Program
     {
         while (true)
         {
+            // Ispisivanje opcija izbornika
             Console.WriteLine("Odaberite opciju:");
             Console.WriteLine("1. Ispis svih ucenika");
             Console.WriteLine("2. Unos novih ocjena");
@@ -20,6 +22,7 @@ class Program
             Console.WriteLine("4. Izlaz");
 
             int opcija;
+            // Provjera ispravnosti unosa opcije
             while (!int.TryParse(Console.ReadLine(), out opcija) || opcija < 1 || opcija > 4)
             {
                 Console.WriteLine("Molimo unesite broj 1, 2, 3 ili 4.");
@@ -27,10 +30,12 @@ class Program
 
             if (opcija == 1)
             {
+                // Prikaz svih ucenika
                 IspisUcenika();
             }
             else if (opcija == 2)
             {
+                // Unos ocjena za određenog ucenika
                 Console.WriteLine("Unesite ime ucenika:");
                 string ime = Console.ReadLine();
 
@@ -38,10 +43,12 @@ class Program
             }
             else if (opcija == 3)
             {
+                // Pretraga ucenika po predmetu i ocjeni
                 PretragaUcenika();
             }
             else if (opcija == 4)
             {
+                // Izlaz iz programa
                 break;
             }
         }
@@ -49,6 +56,7 @@ class Program
 
     static void IspisUcenika()
     {
+        // Čitanje svih linija iz datoteke "ucenici.txt" i ispisivanje svake linije
         string[] linije = File.ReadAllLines("ucenici.txt");
         foreach (string linija in linije)
         {
@@ -58,17 +66,21 @@ class Program
 
     static void UnosOcjena(string ime)
     {
+        // Dodavanje novih ocjena u datoteku "ucenici.txt" za određenog ucenika
         using (StreamWriter sw = File.AppendText("ucenici.txt"))
         {
             foreach (string predmet in predmeti)
             {
+                // Unos ocjene za svaki predmet
                 Console.WriteLine($"Unesite ocjenu iz {predmet}:");
                 int ocjena;
+                // Provjera ispravnosti unosa ocjene
                 while (!int.TryParse(Console.ReadLine(), out ocjena) || ocjena < 1 || ocjena > 5)
                 {
                     Console.WriteLine("Molimo unesite broj izmedu 1 i 5.");
                 }
 
+                // Zapisivanje ocjene u formatu "ime, predmet, ocjena" u datoteku
                 sw.WriteLine($"{ime}, {predmet}, {ocjena}");
             }
         }
@@ -76,9 +88,11 @@ class Program
 
     static void PretragaUcenika()
     {
+        // Pretraga ucenika po predmetu i ocjeni
         Console.WriteLine("Unesite naziv predmeta za pretragu:");
         string predmetPretraga = Console.ReadLine().ToLower();
 
+        // Provjera postojanja unesenog predmeta u listi predmeta
         if (!predmeti.Contains(predmetPretraga))
         {
             Console.WriteLine("Uneseni predmet ne postoji.");
@@ -87,14 +101,17 @@ class Program
 
         Console.WriteLine("Unesite ocjenu za pretragu:");
         int ocjenaPretraga;
+        // Provjera ispravnosti unosa ocjene
         while (!int.TryParse(Console.ReadLine(), out ocjenaPretraga) || ocjenaPretraga < 1 || ocjenaPretraga > 5)
         {
             Console.WriteLine("Molimo unesite broj izmedu 1 i 5.");
         }
 
+        // Čitanje linija iz datoteke "ucenici.txt" i filtriranje rezultata prema unesenom predmetu i ocjeni
         string[] linije = File.ReadAllLines("ucenici.txt");
         var rezultati = linije.Where(line => line.Contains($"{predmetPretraga}, {ocjenaPretraga}"));
         
+        // Ispis rezultata pretrage, ako postoje, inače ispis poruke da nema rezultata
         if (rezultati.Any())
         {
             Console.WriteLine("Rezultati pretrage:");
