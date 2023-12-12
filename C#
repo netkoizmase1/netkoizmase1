@@ -5,124 +5,206 @@ using System.Linq;
 
 class Program
 {
-    // Lista predmeta koja se koristi za unos ocjena
-    static List<string> predmeti = new List<string> {
-        "matematika", "hrvatski", "engleski", "tjelesni", "programiranje", "webdizajn", "bazapodataka"
-    };
-
     static void Main()
     {
+        // Učitavanje korisnika iz datoteke "korisnici.txt" pri pokretanju programa
+        List<Korisnik> korisnici = UcitajKorisnike("korisnici.txt");
+
         while (true)
         {
-            // Ispisivanje opcija izbornika
+            // Ispis izbornika
             Console.WriteLine("Odaberite opciju:");
-            Console.WriteLine("1. Ispis svih ucenika");
-            Console.WriteLine("2. Unos novih ocjena");
-            Console.WriteLine("3. Pretraga ucenika po ocjeni i predmetu");
-            Console.WriteLine("4. Izlaz");
+            Console.WriteLine("1. Najmanje aktivan korisnik po broju postova");
+            Console.WriteLine("2. Najmanje aktivan korisnik po broju komentara");
+            Console.WriteLine("3. Najaktivniji korisnik po broju postova");
+            Console.WriteLine("4. Najaktivniji korisnik po broju komentara");
+            Console.WriteLine("5. Pretraga korisnika po imenu");
+            Console.WriteLine("6. Unos novog korisnika");
+            Console.WriteLine("7. Izlaz");
 
             int opcija;
             // Provjera ispravnosti unosa opcije
-            while (!int.TryParse(Console.ReadLine(), out opcija) || opcija < 1 || opcija > 4)
+            while (!int.TryParse(Console.ReadLine(), out opcija) || opcija < 1 || opcija > 7)
             {
-                Console.WriteLine("Molimo unesite broj 1, 2, 3 ili 4.");
+                Console.WriteLine("Molimo unesite broj 1, 2, 3, 4, 5, 6 ili 7.");
             }
 
             if (opcija == 1)
             {
-                // Prikaz svih ucenika
-                IspisUcenika();
+                NajmanjeAktivanKorisnikPoPostovima(korisnici);
             }
             else if (opcija == 2)
             {
-                // Unos ocjena za određenog ucenika
-                Console.WriteLine("Unesite ime ucenika:");
-                string ime = Console.ReadLine();
-
-                UnosOcjena(ime);
+                NajmanjeAktivanKorisnikPoKomentarima(korisnici);
             }
             else if (opcija == 3)
             {
-                // Pretraga ucenika po predmetu i ocjeni
-                PretragaUcenika();
+                NajaktivnijiKorisnikPoPostovima(korisnici);
             }
             else if (opcija == 4)
             {
-                // Izlaz iz programa
+                NajaktivnijiKorisnikPoKomentarima(korisnici);
+            }
+            else if (opcija == 5)
+            {
+                PretragaKorisnikaPoImenu(korisnici);
+            }
+            else if (opcija == 6)
+            {
+                UnosNovogKorisnika(korisnici);
+                PohraniKorisnike("korisnici.txt", korisnici);
+            }
+            else if (opcija == 7)
+            {
                 break;
             }
         }
     }
 
-    static void IspisUcenika()
+    // Metoda za čitanje korisnika iz datoteke
+    static List<Korisnik> UcitajKorisnike(string nazivDatoteke)
     {
-        // Čitanje svih linija iz datoteke "ucenici.txt" i ispisivanje svake linije
-        string[] linije = File.ReadAllLines("ucenici.txt");
-        foreach (string linija in linije)
+        List<Korisnik> korisnici = new List<Korisnik>();
+
+        if (File.Exists(nazivDatoteke))
         {
-            Console.WriteLine(linija);
+            string[] linije = File.ReadAllLines(nazivDatoteke);
+            foreach (string linija in linije)
+            {
+                string[] podaci = linija.Split(';');
+                if (podaci.Length == 3 && int.TryParse(podaci[1], out int postovi) && int.TryParse(podaci[2], out int komentari))
+                {
+                    korisnici.Add(new Korisnik { ImePrezime = podaci[0], BrojPostova = postovi, BrojKomentara = komentari });
+                }
+            }
         }
+
+        return korisnici;
     }
 
-    static void UnosOcjena(string ime)
+    // Metoda za pohranu korisnika u datoteku
+    static void PohraniKorisnike(string nazivDatoteke, List<Korisnik> korisnici)
     {
-        // Dodavanje novih ocjena u datoteku "ucenici.txt" za određenog ucenika
-        using (StreamWriter sw = File.AppendText("ucenici.txt"))
+        using (StreamWriter sw = new StreamWriter(nazivDatoteke))
         {
-            foreach (string predmet in predmeti)
+            foreach (Korisnik korisnik in korisnici)
             {
-                // Unos ocjene za svaki predmet
-                Console.WriteLine($"Unesite ocjenu iz {predmet}:");
-                int ocjena;
-                // Provjera ispravnosti unosa ocjene
-                while (!int.TryParse(Console.ReadLine(), out ocjena) || ocjena < 1 || ocjena > 5)
-                {
-                    Console.WriteLine("Molimo unesite broj izmedu 1 i 5.");
-                }
-
-                // Zapisivanje ocjene u formatu "ime, predmet, ocjena" u datoteku
-                sw.WriteLine($"{ime}, {predmet}, {ocjena}");
+                sw.WriteLine($"{korisnik.ImePrezime};{korisnik.BrojPostova};{korisnik.BrojKomentara}");
             }
         }
     }
 
-    static void PretragaUcenika()
+    // Metoda za unos novog korisnika
+    static void UnosNovogKorisnika(List<Korisnik> korisnici)
     {
-        // Pretraga ucenika po predmetu i ocjeni
-        Console.WriteLine("Unesite naziv predmeta za pretragu:");
-        string predmetPretraga = Console.ReadLine().ToLower();
+        Console.WriteLine("Unesite ime i prezime korisnika:");
+        string imePrezime = Console.ReadLine();
 
-        // Provjera postojanja unesenog predmeta u listi predmeta
-        if (!predmeti.Contains(predmetPretraga))
+        Console.WriteLine("Unesite broj postova na forumu:");
+        int brojPostova;
+        while (!int.TryParse(Console.ReadLine(), out brojPostova) || brojPostova < 0)
         {
-            Console.WriteLine("Uneseni predmet ne postoji.");
+            Console.WriteLine("Molimo unesite pozitivan broj.");
+        }
+
+        Console.WriteLine("Unesite broj komentara na forumu:");
+        int brojKomentara;
+        while (!int.TryParse(Console.ReadLine(), out brojKomentara) || brojKomentara < 0)
+        {
+            Console.WriteLine("Molimo unesite pozitivan broj.");
+        }
+
+        // Dodavanje novog korisnika u listu korisnika
+        korisnici.Add(new Korisnik { ImePrezime = imePrezime, BrojPostova = brojPostova, BrojKomentara = brojKomentara });
+        Console.WriteLine("Korisnik uspješno dodan.");
+    }
+
+    // Metoda za pronalazak najmanje aktivnog korisnika po broju postova
+    static void NajmanjeAktivanKorisnikPoPostovima(List<Korisnik> korisnici)
+    {
+        if (korisnici.Count == 0)
+        {
+            Console.WriteLine("Nema unesenih korisnika.");
             return;
         }
 
-        Console.WriteLine("Unesite ocjenu za pretragu:");
-        int ocjenaPretraga;
-        // Provjera ispravnosti unosa ocjene
-        while (!int.TryParse(Console.ReadLine(), out ocjenaPretraga) || ocjenaPretraga < 1 || ocjenaPretraga > 5)
+        Korisnik najmanjeAktivanPoPostovima = korisnici.OrderBy(k => k.BrojPostova).First();
+        Console.WriteLine("Najmanje aktivan korisnik po broju postova:");
+        Console.WriteLine(najmanjeAktivanPoPostovima);
+    }
+
+    // Metoda za pronalazak najmanje aktivnog korisnika po broju komentara
+    static void NajmanjeAktivanKorisnikPoKomentarima(List<Korisnik> korisnici)
+    {
+        if (korisnici.Count == 0)
         {
-            Console.WriteLine("Molimo unesite broj izmedu 1 i 5.");
+            Console.WriteLine("Nema unesenih korisnika.");
+            return;
         }
 
-        // Čitanje linija iz datoteke "ucenici.txt" i filtriranje rezultata prema unesenom predmetu i ocjeni
-        string[] linije = File.ReadAllLines("ucenici.txt");
-        var rezultati = linije.Where(line => line.Contains($"{predmetPretraga}, {ocjenaPretraga}"));
-        
-        // Ispis rezultata pretrage, ako postoje, inače ispis poruke da nema rezultata
-        if (rezultati.Any())
+        Korisnik najmanjeAktivanPoKomentarima = korisnici.OrderBy(k => k.BrojKomentara).First();
+        Console.WriteLine("Najmanje aktivan korisnik po broju komentara:");
+        Console.WriteLine(najmanjeAktivanPoKomentarima);
+    }
+
+    // Metoda za pronalazak najaktivnijeg korisnika po broju postova
+    static void NajaktivnijiKorisnikPoPostovima(List<Korisnik> korisnici)
+    {
+        if (korisnici.Count == 0)
         {
-            Console.WriteLine("Rezultati pretrage:");
-            foreach (var rezultat in rezultati)
-            {
-                Console.WriteLine(rezultat);
-            }
+            Console.WriteLine("Nema unesenih korisnika.");
+            return;
+        }
+
+        Korisnik najaktivnijiPoPostovima = korisnici.OrderByDescending(k => k.BrojPostova).First();
+        Console.WriteLine("Najaktivniji korisnik po broju postova:");
+        Console.WriteLine(najaktivnijiPoPostovima);
+    }
+
+    // Metoda za pronalazak najaktivnijeg korisnika po broju komentara
+    static void NajaktivnijiKorisnikPoKomentarima(List<Korisnik> korisnici)
+    {
+        if (korisnici.Count == 0)
+        {
+            Console.WriteLine("Nema unesenih korisnika.");
+            return;
+        }
+
+        Korisnik najaktivnijiPoKomentarima = korisnici.OrderByDescending(k => k.BrojKomentara).First();
+        Console.WriteLine("Najaktivniji korisnik po broju komentara:");
+        Console.WriteLine(najaktivnijiPoKomentarima);
+    }
+
+    // Metoda za pretragu korisnika po imenu
+    static void PretragaKorisnikaPoImenu(List<Korisnik> korisnici)
+    {
+        Console.WriteLine("Unesite ime korisnika za pretragu:");
+        string imePretraga = Console.ReadLine();
+
+        Korisnik trazeniKorisnik = korisnici.FirstOrDefault(k => k.ImePrezime.Equals(imePretraga, StringComparison.OrdinalIgnoreCase));
+
+        if (trazeniKorisnik != null)
+        {
+            Console.WriteLine("Pronađeni korisnik:");
+            Console.WriteLine(trazeniKorisnik);
         }
         else
         {
-            Console.WriteLine("Nema rezultata za zadane kriterije pretrage.");
+            Console.WriteLine("Korisnik nije pronađen.");
+        }
+    }
+
+
+    // Klasa koja predstavlja informacije o korisniku
+    class Korisnik
+    {
+        public string ImePrezime { get; set; }
+        public int BrojPostova { get; set; }
+        public int BrojKomentara { get; set; }
+
+        public override string ToString()
+        {
+            return $"{ImePrezime} - Postovi: {BrojPostova}, Komentari: {BrojKomentara}";
         }
     }
 }
